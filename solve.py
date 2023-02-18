@@ -1,14 +1,15 @@
-#from pwn import *
+from pwn import *
 import itertools
 import re
 import random
 import functools
+import time
 
 alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
             'y', 'z']
 
-print(30*"=*")
+#print(30*"=*")
 
 # ------------------ EXAMPLE ------------------
 # s = λb ε. ε b     -> s = λx y. x
@@ -24,9 +25,6 @@ print(30*"=*")
 
 #(λe. e (λa . (λx y . y))  (λa . (λx y . x)))
 #(λa . (λx y . y)))  (λa . (λx y . x))
-
-#p = remote("34.141.16.87", 60000)
-#p.interactive()
 
 # [m] (λa b. a b a) (λa b. a) (λa b. b)
 # [m] (λa b. (λc d. c) b a) (λa b. b)
@@ -88,9 +86,9 @@ def normalize(expr):
     return expr
 
 def match(a, b):
-    print()
-    print(f"[] {a=}")
-    print(f"[] {b=}")
+    #print()
+    #print(f"[] {a=}")
+    #print(f"[] {b=}")
 
     a = list(a)
     b = list(b)
@@ -101,8 +99,8 @@ def match(a, b):
     a = ''.join(a)
     b = ''.join(b)
 
-    print(f"[] {a=}")
-    print(f"[] {b=}")
+    #print(f"[] {a=}")
+    #print(f"[] {b=}")
 
     return a == b
 
@@ -113,12 +111,12 @@ def beta_reduce(expression):
                 'y', 'z']
     alphabet_used = []
 
-    print(f"[i] input: {expression}")
+    #print(f"[i] input: {expression}")
 
     ####################  parse the func
     func = get_expr(expression, True)[0]
     expression = expression.replace(func, "", 1).strip() # delete func from expression
-    print(f"[i] \t| {func=}")
+    #print(f"[i] \t| {func=}")
 
     ####################  parse the parameters
     params = re.search("λ([a-z ]+)\.", func).group(1).split(" ")
@@ -128,7 +126,7 @@ def beta_reduce(expression):
         if val not in alphabet_used and val in alpha:
             alphabet_used.append(val)
     alphabet_free = list(set(alphabet_free))
-    print(f"[i] \t| {params=}")
+    #print(f"[i] \t| {params=}")
 
     ####################  parse the body
     body = re.search("λ[a-z ]+\.([λ.()a-z ]+)\)", func).group(1)[1:]
@@ -142,7 +140,7 @@ def beta_reduce(expression):
     alphabet_free = list(set(alphabet_free))
     if ' ' in body: # otherwise we get in the loop below
         body.remove(' ')
-    print(f"[i] \t| {body=}")
+    #print(f"[i] \t| {body=}")
 
     ####################  parse the args
     args = get_expr(expression, False)
@@ -150,7 +148,7 @@ def beta_reduce(expression):
         args.remove('')
     if ' ' in args: # otherwise we get in the loop below
         args.remove(' ')
-    print(f"[i] \t| {args=}")
+    #print(f"[i] \t| {args=}")
 
     #print(f"[i] \t| {alphabet_free=}")
     #print(f"[i] \t| {alphabet_used=}")
@@ -163,12 +161,12 @@ def beta_reduce(expression):
         if count_remove == len(params):
             break
 
-        print(f"[ ] {i=} {args[i]=} {params[i]=}")
+        #print(f"[ ] {i=} {args[i]=} {params[i]=}")
 
         # for each element in the body, try to replace the parameter with the
         # provided argument
         for j in range(0, len(body)):
-            print(f"    {i=} {j=} {body[j]} {params[i]=} {args[i]=}")
+            #print(f"    {i=} {j=} {body[j]} {params[i]=} {args[i]=}")
             new_arg = args[i]
 
             available_alph = [char for char in alphabet_free if char not in new_arg]
@@ -182,9 +180,9 @@ def beta_reduce(expression):
                         #print(f"{alphabet_used=}")
                         char = available_alph[0]
 
-                        print(f"--> {new_arg} {letter} {char}")
+                        #print(f"--> {new_arg} {letter} {char}")
                         new_arg = new_arg.replace(letter, char)
-                        print(f"--> {new_arg} {letter} {char}")
+                        #print(f"--> {new_arg} {letter} {char}")
 
                         alphabet_free.remove(char)
                         available_alph.remove(char)
@@ -234,14 +232,22 @@ def beta_reduce(expression):
 # with a function
 def recurse(expression):
     expression = expression.strip()
-    while expression[1] == "λ" and len(get_expr(expression))>1:
-        expression = beta_reduce(expression).strip()
-        print(f"[d] {expression=}")
+    depth = 0
+
+    try:
+        while expression[1] == "λ" and len(get_expr(expression))>1:
+            expression = beta_reduce(expression).strip()
+            #print(f"[d {depth}] {expression=}")
+            depth += 1
+
+            if depth >= 50:
+                break
+    except:
+        pass
+
     return expression
 
 ################################################################################
-
-
 
 primitives = {}
 primitives["TRUE"] = "(λc d. c)"
@@ -251,22 +257,29 @@ primitives["CONST_FALSE"] = f'(λb. {primitives["FALSE"]})'
 primitives["AND"] = "(λa b. a b a)"
 primitives["OR"] = f'(λa b. a a b)'
 primitives["IDENDTITY1"] = f'(λa. a)'
+primitives["NOT"] = f'(λp. p {primitives["FALSE"]} {primitives["TRUE"]})'
 
 @functools.lru_cache()
-def gen_funcs(params=2):
+def gen_funcs(param_count=2, body_count=3):
     ret = []
-    permutations = [x for x in itertools.product(''.join(alpha[:params]),
-                                                 repeat=params)]
-    params = " ".join([alpha[i] for i in range(0, params)])
-    for body in permutations:
+
+    params = " ".join([alpha[i] for i in range(0, param_count)])
+
+    product = [x for x in itertools.product(''.join(alpha[:param_count]),
+                                                 repeat=body_count)]
+    for body in product:
         body = " ".join(body)
         ret.append(f'(λ{params}. {body})')
 
     return ret
 
-funcs2 = gen_funcs(params=2)
-funcs3 = gen_funcs(params=3)
-funcs4 = gen_funcs(params=4)
+funcs2 = gen_funcs(param_count=2, body_count=3)
+funcs3 = gen_funcs(param_count=3, body_count=4)
+funcs4 = gen_funcs(param_count=4, body_count=4)
+
+manual = [
+        '(λb a c c. {primitives["TRUE"]})',
+        ]
 
 primi = primitives
 
@@ -274,49 +287,119 @@ primi = primitives
 #r2 = recurse(expr)
 #print(f"{r2=}")
 
-print(60*"-")
+#print(60*"-")
 
-#possible_vals = [expr_true, expr_false, expr_and, expr_or,
-possible_vals = [[a for a in primi.values()], funcs2, funcs3, funcs4]
+#possible_vals = [[a for a in primi.values()], funcs2, funcs3, funcs4]
+#possible_vals = [[a for a in primi.values()], funcs2, funcs3]
+possible_vals = [[a for a in primi.values()], funcs3, manual]
+#possible_vals = [[a for a in primi.values()], funcs2]
 
-s = "(λa b. a (a b))"
-t = "(λa b. a (a a))"
-print(f"[ ] {s=}")
-print(f"[ ] {t=}")
 
-goal_s = "(λa b. a)"
-goal_t = "(λa b. b)"
-print(f"[ ] {goal_s=}")
-print(f"[ ] {goal_t=}")
+
+############################################################
+# Brute Forcer
+############################################################
+
+#s = "(λa b. b a)"
+#t = "(λa b. b b)"
+#print(f"[ ] {s=}")
+#print(f"[ ] {t=}")
+
+#goal_s = "(λa b. a)"
+#goal_t = "(λa b. b)"
+#print(f"[ ] {goal_s=}")
+#print(f"[ ] {goal_t=}")
+
+total_len = len([b for a in possible_vals for b in a])
+
+def brute_force(level, s, t, goal_s, goal_t):
+
+    counter = 0
+    while True:
+        print(f"\r{level}, {counter:10} / {total_len:10} | {s} | {t}", end="")
+
+        rands = []
+
+        for i in range(0, random.choice([1, 2, 3])):
+            rands.append(random.choice(random.choice(possible_vals)))
+
+        #print()
+        #print(f"[ ] {s=}")
+        #print(f"[ ] {t=}")
+        #print(f"[ ] {rand1=}")
+        #print(f"[ ] {rand2=}")
+
+        term_s = " ".join([s, *rands])
+        term_t = " ".join([t, *rands])
+        #print(f"[ ] {term_s=}")
+        #print(f"[ ] {term_t=}")
+
+        r_s = recurse(term_s)
+        r_t = recurse(term_t)
+        #print(f"[ ] {r_s=}")
+        #print(f"[ ] {r_t=}")
+
+        #print(f"[ ] {match(r_s, goal_s)=}")
+        #print(f"[ ] {match(r_t, goal_t)=}")
+
+        if match(r_s, goal_s) and match(r_t, goal_t):
+            print(40*"=")
+            print(f"[ ] {s=} {t=}")
+            print(f"[ ] {rands=}")
+            print(f"[ ] {goal_s=}")
+            print(f"[ ] {r_s=}")
+            print(f"[ ] {r_t=}")
+            print(40*"=")
+            break
+
+        counter += 1
+
+    return rands
+
+############################################################
+# Server Interaction
+############################################################
+
+p = remote("34.141.16.87", 60000)
+p.readuntil("s = ")
+
+level = 0
 
 while True:
-    rand1 = random.choice(random.choice(possible_vals))
-    rand2 = random.choice(random.choice(possible_vals))
-    print(f"[ ] {s=}")
-    print(f"[ ] {rand1=}")
-    print(f"[ ] {rand2=}")
+    p.readuntil("s = ")
+    s = "("+ p.readline().decode().strip() + ")"
+    print(f"{s=}")
 
-    term_s = " ".join([s, rand1, rand2])
-    term_t = " ".join([t, rand1, rand2])
-    print(f"[ ] {term_s=}")
-    print(f"[ ] {term_t=}")
+    p.readuntil("t = ")
+    t = "(" + p.readline().decode().strip() + ")"
+    print(f"{t=}")
 
-    r_s = recurse(term_s)
-    r_t = recurse(term_t)
-    print(f"[ ] {r_s=}")
-    print(f"[ ] {r_t=}")
+    p.readuntil("beta-reduces to ")
+    goal_s = p.readline().decode().strip()
+    print(f"{goal_s=}")
+    p.readuntil("beta-reduces to ")
+    goal_t = p.readline().decode().strip()
+    print(f"{goal_t=}")
 
-    print(f"[ ] {match(r_s, goal_s)=}")
-    print(f"[ ] {match(r_t, goal_t)=}")
+    # solve
+    res = brute_force(level, s, t, goal_s, goal_t)
+    print(res)
 
-    if match(r_s, goal_s) and match(r_t, goal_t):
-        print(40*"=")
-        print(f"[ ] {s=} {t=}")
-        print(f"[ ] {rand1=}")
-        print(f"[ ] {rand2=}")
-        print(f"[ ] {goal_s=}")
-        print(f"[ ] {r_s=}")
-        print(f"[ ] {rand1=}")
-        print(f"[ ] {rand2=}")
-        print(40*"=")
-        break
+    p.readline()
+    p.sendlineafter("want to input? ", str(len(res)).encode('utf-8'))
+
+    for i in range(1, len(res)+1):
+        p.sendlineafter(f"term {i}: ", str(res[i-1]).encode('utf-8'))
+
+    #p.interactive()
+    level += 1
+
+# LOOK INTO:
+#61322 /         96 | (λa b. a (b a)) | (λa b. a (b b))
+
+
+#s = "(λa b. a a)"
+#t = "(λa. a a)"
+#goal_s = primitives["TRUE"]
+#goal_t = primitives["FALSE"]
+#print(brute_force(s, t, goal_s, goal_t))

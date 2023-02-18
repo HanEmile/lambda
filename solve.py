@@ -2,6 +2,11 @@
 import itertools
 import re
 import random
+import functools
+
+alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+            'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+            'y', 'z']
 
 print(30*"=*")
 
@@ -110,37 +115,36 @@ def beta_reduce(expression):
 
     print(f"[i] input: {expression}")
 
-    # parse the func
+    ####################  parse the func
     func = get_expr(expression, True)[0]
-    expression = expression.replace(func, "").strip() # delete func from expression
+    expression = expression.replace(func, "", 1).strip() # delete func from expression
     print(f"[i] \t| {func=}")
 
-    # parse the parameters
+    ####################  parse the parameters
     params = re.search("λ([a-z ]+)\.", func).group(1).split(" ")
     for val in params:
         if val in alphabet_free:
             alphabet_free.remove(val)
-        if val not in alphabet_used:
+        if val not in alphabet_used and val in alpha:
             alphabet_used.append(val)
     alphabet_free = list(set(alphabet_free))
     print(f"[i] \t| {params=}")
 
+    ####################  parse the body
     body = re.search("λ[a-z ]+\.([λ.()a-z ]+)\)", func).group(1)[1:]
     body = get_expr(body)
-    #.split(" ")
 
     for val in body:
         if val in alphabet_free:
             alphabet_free.remove(val)
-        if val not in alphabet_used:
+        if val not in alphabet_used and val in alpha:
             alphabet_used.append(val)
     alphabet_free = list(set(alphabet_free))
-    #if '' in body: # otherwise we get in the loop below
-    #    body.remove('')
-    #if ' ' in body: # otherwise we get in the loop below
-    #    body.remove(' ')
+    if ' ' in body: # otherwise we get in the loop below
+        body.remove(' ')
     print(f"[i] \t| {body=}")
 
+    ####################  parse the args
     args = get_expr(expression, False)
     if '' in args: # otherwise we get in the loop below
         args.remove('')
@@ -167,6 +171,8 @@ def beta_reduce(expression):
             print(f"    {i=} {j=} {body[j]} {params[i]=} {args[i]=}")
             new_arg = args[i]
 
+            available_alph = [char for char in alphabet_free if char not in new_arg]
+
             if params[i] in body[j]:
 
                 partial_alphabet = []
@@ -174,11 +180,14 @@ def beta_reduce(expression):
                     if letter in new_arg:
                         #print(f"{alphabet_free=}")
                         #print(f"{alphabet_used=}")
-                        char = alphabet_free[0]
+                        char = available_alph[0]
 
+                        print(f"--> {new_arg} {letter} {char}")
                         new_arg = new_arg.replace(letter, char)
+                        print(f"--> {new_arg} {letter} {char}")
 
                         alphabet_free.remove(char)
+                        available_alph.remove(char)
                         if char not in alphabet_used:
                             partial_alphabet.append(char)
 
@@ -187,8 +196,8 @@ def beta_reduce(expression):
 
             body[j] = body[j].replace(params[i], new_arg)
 
-            print(f"    new body char {body[j]}")
-            print(f"    new body = {' '.join(body)}")
+            #print(f"    new body char {body[j]}")
+            #print(f"    new body = {' '.join(body)}")
 
         count_remove += 1
 
@@ -230,58 +239,84 @@ def recurse(expression):
         print(f"[d] {expression=}")
     return expression
 
-
-expr_true = "(λc d. c)"
-expr_const_true = f"(λa. {expr_true})"
-
-expr_false = "(λe f. f)"
-expr_const_false = f"(λb. {expr_false})"
-
-expr_and = "(λa b. a b a)"
-expr_or = "(λa b. a a b)"
-
-expr = f"{expr_and} {expr_true} {expr_false}"
-r1 = recurse(expr)
-print(f"{r1=}")
+################################################################################
 
 
-#and_true_false = f"{expr_and} {expr_true} {expr_false}"
-#r1 = recurse(and_true_false)
-#print(f"[m] {r1=}\n")
+
+primitives = {}
+primitives["TRUE"] = "(λc d. c)"
+primitives["CONST_TRUE"] = f'(λa. {primitives["TRUE"]})'
+primitives["FALSE"] = "(λe f. f)"
+primitives["CONST_FALSE"] = f'(λb. {primitives["FALSE"]})'
+primitives["AND"] = "(λa b. a b a)"
+primitives["OR"] = f'(λa b. a a b)'
+primitives["IDENDTITY1"] = f'(λa. a)'
+
+@functools.lru_cache()
+def gen_funcs(params=2):
+    ret = []
+    permutations = [x for x in itertools.product(''.join(alpha[:params]),
+                                                 repeat=params)]
+    params = " ".join([alpha[i] for i in range(0, params)])
+    for body in permutations:
+        body = " ".join(body)
+        ret.append(f'(λ{params}. {body})')
+
+    return ret
+
+funcs2 = gen_funcs(params=2)
+funcs3 = gen_funcs(params=3)
+funcs4 = gen_funcs(params=4)
+
+primi = primitives
+
+#expr = f'{primi["AND"]} {primi["TRUE"]} {primi["OR"]}'
+#r2 = recurse(expr)
+#print(f"{r2=}")
 
 print(60*"-")
 
-##possible_vals = [expr_true, expr_false, expr_and, expr_or,
-#possible_vals = [expr_const_true, expr_const_false]
-#
-#while True:
-#    rand1 = random.choice(possible_vals)
-#    rand2 = random.choice(possible_vals)
-#
-#    s = "(λa b. a (a b))"
-#    t = "(λa b. a (a a))"
-#    term_s = " ".join([s, rand1, rand2])
-#    term_t = " ".join([t, rand1, rand2])
-#    goal_s = "(λa b. a)"
-#    goal_t = "(λa b. b)"
-#
-#    print(f"[ ] {s=}")
-#    print(f"[ ] {t=}")
-#    print(f"[ ] {term_s=}")
-#    print(f"[ ] {term_t=}")
-#    r_s = recurse(term_s)
-#    r_t = recurse(term_t)
-#    print(f"[ ] {r_s=}")
-#    print(f"[ ] {r_t=}")
-#    print(f"[ ] {goal_s=}")
-#    print(f"[ ] {goal_t=}")
-#    print(f"[ ] {match(r_s, goal_s)=}")
-#    print(f"[ ] {match(r_t, goal_t)=}")
-#
-#    if match(r_s, goal_s) and match(r_t, goal_t):
-#        print(40*"=")
-#        print(f"[ ] {s=} {t=}")
-#        print(f"[ ] {rand1=}")
-#        print(f"[ ] {rand2=}")
-#        print(40*"=")
-#        break
+#possible_vals = [expr_true, expr_false, expr_and, expr_or,
+possible_vals = [[a for a in primi.values()], funcs2, funcs3, funcs4]
+
+s = "(λa b. a (a b))"
+t = "(λa b. a (a a))"
+print(f"[ ] {s=}")
+print(f"[ ] {t=}")
+
+goal_s = "(λa b. a)"
+goal_t = "(λa b. b)"
+print(f"[ ] {goal_s=}")
+print(f"[ ] {goal_t=}")
+
+while True:
+    rand1 = random.choice(random.choice(possible_vals))
+    rand2 = random.choice(random.choice(possible_vals))
+    print(f"[ ] {s=}")
+    print(f"[ ] {rand1=}")
+    print(f"[ ] {rand2=}")
+
+    term_s = " ".join([s, rand1, rand2])
+    term_t = " ".join([t, rand1, rand2])
+    print(f"[ ] {term_s=}")
+    print(f"[ ] {term_t=}")
+
+    r_s = recurse(term_s)
+    r_t = recurse(term_t)
+    print(f"[ ] {r_s=}")
+    print(f"[ ] {r_t=}")
+
+    print(f"[ ] {match(r_s, goal_s)=}")
+    print(f"[ ] {match(r_t, goal_t)=}")
+
+    if match(r_s, goal_s) and match(r_t, goal_t):
+        print(40*"=")
+        print(f"[ ] {s=} {t=}")
+        print(f"[ ] {rand1=}")
+        print(f"[ ] {rand2=}")
+        print(f"[ ] {goal_s=}")
+        print(f"[ ] {r_s=}")
+        print(f"[ ] {rand1=}")
+        print(f"[ ] {rand2=}")
+        print(40*"=")
+        break

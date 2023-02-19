@@ -19,6 +19,10 @@ Exec solve script:
 
 ---
 
+## Cache
+
+Caching implemented, view the current cache here: [cache.md](./cache.md)
+
 ## Challenge Description
 
 Let's have some fun with Lambda Calculus!

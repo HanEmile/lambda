@@ -4,14 +4,65 @@ import re
 import random
 import functools
 import time
-
-import logging
+import pickle
 
 random.seed(time.time())
 
 alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
             'y', 'z']
+
+#cache = {}
+#with open('cache.pickle', 'wb') as handle:
+#    pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+with open('cache.pickle', 'rb') as handle:
+    cache = pickle.load(handle)
+
+s='(λa b. a (λc. b (a b)) a)'
+t='(λa b. a (λc. b (c a b)) a)'
+goal_s='(λx y. x)'
+goal_t='(λx y. y)'
+
+#('(λa b. a (b b))', '(λa b. a (a a))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b a))', '(λa b. a (b b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a a)', '(λa. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa b. b b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa b. a b)') ('(λx y. x)', '(λx y. y)')
+
+#('λa b. a (λc. a (a c c)) a', 'λa b. a (λc. a (a c b)) a') ('λx y. x', 'λx y. y')
+#('(λa b. a (b b))', '(λa b. a (b a))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a b))', '(λa b. a (b a))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a b)', '(λa b. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a b)', '(λa b. b a)') ('(λx y. x)', '(λx y. y)')
+#('(λa. a a)', '(λa b. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a a)', '(λa b. b b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa b. b b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a a)', '(λa. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa. a a)', '(λa b. a b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b b))', '(λa b. a (a b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b a))', '(λa b. a (a b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b b)', '(λa b. b a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b b))', '(λa b. a (a a))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a b)', '(λa b. b b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b a))', '(λa b. a (a a))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a b)', '(λa. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b b)', '(λa. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (b a))', '(λa b. a (b b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a a))', '(λa b. a (a b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a b))', '(λa b. a (a a))') ('(λx y. x)', '(λx y. y)')
+#('(λa. a a)', '(λa b. b a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a a))', '(λa b. a (b a))') ('(λx y. x)', '(λx y. y)')
+#('(λa. a a)', '(λa b. b b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa b. a b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a a))', '(λa b. a (b b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a a)', '(λa b. a b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b a)', '(λa b. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b b)', '(λa b. a a)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a b))', '(λa b. a (b b))') ('(λx y. x)', '(λx y. y)')
+#('(λa b. b b)', '(λa b. a b)') ('(λx y. x)', '(λx y. y)')
+#('(λa b. a (a b))', '(λa b c. a (c b))') ('(λx y. x)', '(λx y. y)')
 
 #print(30*"=*")
 
@@ -108,20 +159,20 @@ def match(a, b):
 
     return a == b
 
-def beta_reduce(expression):
+def beta_reduce(depth, expression):
     # used to track "free" variable names
     alphabet_free = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
                 'y', 'z']
     alphabet_used = []
 
-    #print(f"[i] input: {expression}")
+    #print(f"[i] {depth} input: {expression}")
 
     ####################  parse the func
     func = get_expr(expression, True)[0]
     expression = expression.replace(func, "", 1).strip() # delete func from expression
-    #print(f"[i] \t| {func=}")
 
+    #print(f"[i] \t| {func=}")
     ####################  parse the parameters
     params = re.search("λ([a-z ]+)\.", func).group(1).split(" ")
     for val in params:
@@ -130,8 +181,8 @@ def beta_reduce(expression):
         if val not in alphabet_used and val in alpha:
             alphabet_used.append(val)
     alphabet_free = list(set(alphabet_free))
-    #print(f"[i] \t| {params=}")
 
+    #print(f"[i] \t| {params=}")
     ####################  parse the body
     body = re.search("λ[a-z ]+\.([λ.()a-z ]+)\)", func).group(1)[1:]
     body = get_expr(body)
@@ -142,9 +193,18 @@ def beta_reduce(expression):
         if val not in alphabet_used and val in alpha:
             alphabet_used.append(val)
     alphabet_free = list(set(alphabet_free))
+
+    # +++++++++++++ THIS COULD BE BROKEN ++++++++
+    # move lambdas from body to params
+    if "λ" in body:
+        idx = body.index("λ")
+        params.append(body[idx+1])
+        del body[idx:idx+3] # the lambda, the arg and the dot
+    # +++++++++++++ THIS COULD BE BROKEN ++++++++
+
+
     if ' ' in body: # otherwise we get in the loop below
         body.remove(' ')
-    #print(f"[i] \t| {body=}")
 
     ####################  parse the args
     args = get_expr(expression, False)
@@ -152,7 +212,14 @@ def beta_reduce(expression):
         args.remove('')
     if ' ' in args: # otherwise we get in the loop below
         args.remove(' ')
-    #print(f"[i] \t| {args=}")
+
+    """
+    print(f"[i] \t| {args=}")
+    print(f"[i] \t| {func=}")
+    print(f"[i] \t| {params=}")
+    print(f"[i] \t| {body=}")
+    print(f"[i] \t| {args=}")
+    """
 
     #print(f"[i] \t| {alphabet_free=}")
     #print(f"[i] \t| {alphabet_used=}")
@@ -240,7 +307,7 @@ def recurse(expression):
 
     try:
         while expression[1] == "λ" and len(get_expr(expression))>1:
-            expression = beta_reduce(expression).strip().replace("  ", "")
+            expression = beta_reduce(depth, expression).strip().replace("  ", "")
             #print(f"[1d {depth}] {expression=}")
             if expression[:2] == '((':
                 #print(f"[2d {depth}] {expression[:2]=}")
@@ -340,8 +407,6 @@ possible_vals = [[a for a in primi.values()], funcs1, funcs2, funcs3, manual]
 # Brute Forcer
 ############################################################
 
-
-
 total_len = len([b for a in possible_vals for b in a])
 
 def brute_force(level, s, t, goal_s, goal_t):
@@ -373,9 +438,10 @@ def brute_force(level, s, t, goal_s, goal_t):
 
             if match(r_s, goal_s) and match(r_t, goal_t):
             #if match(r_s, goal_s):
+                print()
                 print(40*"=")
                 print(f"[ ] {s=} {t=}")
-                print(f"[ ] {rands=}")
+                print(f"[ ] {' '.join(rands)=}")
                 print(f"[ ] {goal_s=}")
                 print(f"[ ] {r_s=}")
                 print(f"[ ] {r_t=}")
@@ -405,16 +471,16 @@ def brute_force_single(level, s, goal_s):
 
             rands = []
 
-            for j in range(0, random.choice([1, 2, 3, 4])):
+            for j in range(0, random.choice([1, 2, 3])):
                 rands.append(random.choice(random.choice(possible_vals)))
 
             term_s = " ".join([s, *rands])
             r_s = recurse(term_s)
             if match(r_s, goal_s):
-                print(f"\r| {level:4} | {fcps:5.2} | {counter+i:10} / {total_len:4} | {s} ", end="")
+                print(f"\r| {level:4} | {fcps:5.2} | {counter+i:10} / {total_len:4} | {s} ")
                 print(40*"=")
                 print(f"[ ] {s=}")
-                print(f"[ ] {rands=}")
+                print(f"[ ] {' '.join(rands)=}")
                 print(f"[ ] {goal_s=}")
                 print(f"[ ] {r_s=}")
                 print(40*"=")
@@ -482,16 +548,19 @@ def brute_force_single(level, s, goal_s):
 ### 
 ### ########################################
 
+"""
 s='(λa b. a λc. b (a c))'
-s='(λa b c. a b (a c))'
-t='(λa b c. a b (a c))'
+#s='(λa b c. a b (a c))'
+#t='(λa b c. a b (a c))'
 #t='(λa b. a λc. b (a a c))'
 goal_s='(λx y. x)'
-goal_t='(λx y. y)'
-r1 = brute_force(0, s, t, goal_s, goal_t)
+#goal_t='(λx y. y)'
+#r1 = brute_force(0, s, t, goal_s, goal_t)
+r1 = brute_force_single(0, s, goal_s)
 print(f"{r1=}")
 
 exit()
+"""
 
 #for i in range(0, 50):
 #    s = "(λa b. a (a b))"
@@ -526,35 +595,79 @@ p = remote("34.141.16.87", 60000)
 p.readuntil(bytes("s = ", "utf-8"))
 
 level = 0
+cache_hits = 0
+
+last_added_to_cache = ()
 
 while True:
-    p.readuntil(b"s = ")
-    s = "("+ p.readline().decode().strip() + ")"
-    print(f"{s=}")
+    try:
+        print(20*"=" + f"{level}" + 20*"=")
+        p.readuntil(b"s = ")
+        s = "("+ p.readline().decode().strip() + ")"
+        print(f"{s=}")
 
-    p.readuntil(b"t = ")
-    t = "(" + p.readline().decode().strip() + ")"
-    print(f"{t=}")
+        p.readuntil(b"t = ")
+        t = "(" + p.readline().decode().strip() + ")"
+        print(f"{t=}")
 
-    p.readuntil(b"beta-reduces to ")
-    goal_s = p.readline().decode().strip()
-    print(f"{goal_s=}")
-    p.readuntil(b"beta-reduces to ")
-    goal_t = p.readline().decode().strip()
-    print(f"{goal_t=}")
+        p.readuntil(b"beta-reduces to ")
+        goal_s = p.readline().decode().strip() 
+        print(f"{goal_s=}")
+        p.readuntil(b"beta-reduces to ")
+        goal_t = p.readline().decode().strip()
+        print(f"{goal_t=}")
 
-    # solve
-    res = brute_force(level, s, t, goal_s, goal_t)
-    print(res)
+        res = []
+        # lookup in cache
+        cache_key = ((s, t), (goal_s, goal_t))
+        if cache_key in cache:
+            print(f"HIT CACHE ({len(cache)}): {cache_key}")
+            cache_hits += 1
+            res = cache[cache_key]
 
-    p.readline()
-    p.sendlineafter("want to input? ", str(len(res)).encode('utf-8'))
+        # solve manually
+        else:
+            res = brute_force(level, s, t, goal_s, goal_t)
+            print("SOLVE MANUALLY")
+            print(res)
 
-    for i in range(1, len(res)+1):
-        p.sendlineafter(f"term {i}: ", str(res[i-1]).encode('utf-8'))
+            last_added_to_cache = cache_key
+            cache[cache_key] = res
 
-    #p.interactive()
-    level += 1
+        p.readline().decode()
+        p.sendlineafter(b"want to input? ", str(len(res)).encode('utf-8'))
+
+        for i in range(1, len(res)+1):
+            p.sendlineafter(f"term {i}: ", str(res[i-1]).encode('utf-8'))
+
+        correct = p.readline().decode() # correct!
+        if "Correct!" in correct:
+            print("adding to cache:")
+            print(cache_key)
+            print(res)
+            cache[cache_key] = res
+            print(40*"=*")
+
+        #p.interactive()
+        level += 1
+    except:
+        print("SOMETHING WENT HORRIBLY WRONG!")
+        print(f"level {level}, cache hits: {cache_hits}")
+        try:
+            del cache[last_added_to_cache]
+        except:
+            print("COULD NOT DEL LAST")
+            pass
+        print(f"{len(cache)=}")
+
+        with open('cache.pickle', 'wb') as handle:
+            pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        for k, v in cache:
+            print(k, v)
+
+
+        break
 
 # LOOK INTO:
 #61322 /         96 | (λa b. a (b a)) | (λa b. a (b b))

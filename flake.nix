@@ -1,6 +1,6 @@
 {
-  description = "Nix pwn env";
-  nixConfig.bash-prompt = "\[pwn\]; ";
+  description = "Nix HackTM CTF 'know your lambda calculus' challenge dev setup (nix develop for shell, python3 solve.py)";
+  nixConfig.bash-prompt = "\[HackTM CTF lambda\]; ";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
@@ -33,14 +33,10 @@
           in
           pkgs.mkShell {
             packages = [ # The Nix packages provided in the environment
-
               # Python plus helper tools
               (python.withPackages (ps: with ps; [
-                virtualenv # Virtualenv
-                pip # The pip installer
-                pwntools # The pip installer
+                pwntools
               ]))
-
             ];
           };
       });

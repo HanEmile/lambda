@@ -16,6 +16,9 @@ alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
 #with open('cache.pickle', 'wb') as handle:
 #    pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+with open('cannot_solve.pickle', 'rb') as handle:
+    cannot_solve_list = pickle.load(handle)
+
 with open('cache.pickle', 'rb') as handle:
     cache = pickle.load(handle)
 
@@ -611,6 +614,9 @@ while True:
         t = "(" + p.readline().decode().strip() + ")"
         print(f"{t=}")
 
+        if (s, t) in cannot_solve_list:
+            raise ValueError('We know that we can not solve this, as it is in the cannot_solve_list')
+
         p.readuntil(b"beta-reduces to ")
         goal_s = p.readline().decode().strip() 
         print(f"{goal_s=}")
@@ -654,10 +660,17 @@ while True:
     except:
         print("SOMETHING WENT HORRIBLY WRONG!")
 
+        # handle saving the "cannot_solve" items
         print(f"CANNOT SOLVE {s=} {t=}")
+
         cannot_solve = open("./cannot_solve.md", "a")
         cannot_solve.write(f"- `{s} | {t}`\n")
+        cannot_solve_list.append((s, t))
 
+        with open('cannot_solve.pickle', 'wb') as handle:
+            pickle.dump(cannot_solve_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # handle saving the cached items
         print(f"level {level}, cache hits: {cache_hits}")
         try:
             del cache[last_added_to_cache]

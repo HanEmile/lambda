@@ -21,3 +21,7 @@
 - `(λa b. a λc. c b b) | (λa b. a λc. c b)`
 - `(λa b. a λc. c c a) | (λa b. a λc. c c b)`
 - `(λa b. a λc. c c b) | (λa b. a (b b))`
+- `(λa b. a (λc. b a a) a) | (λa b. a (λc. b c) a)`
+- `(λa b. a (λc. b (a b) a) a) | (λa b. a (λc. b (a a) a) a)`
+- `(λa b. a λc. b c) | (λa b. a λc. b a a)`
+- `(λa b. a (a b b) a) | (λa b. a (λc. b c b) a)`

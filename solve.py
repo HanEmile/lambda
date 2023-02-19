@@ -483,11 +483,15 @@ def brute_force_single(level, s, goal_s):
 ### ########################################
 
 s='(λa b. a λc. b (a c))'
-t='(λa b. a λc. b (a a c))'
+s='(λa b c. a b (a c))'
+t='(λa b c. a b (a c))'
+#t='(λa b. a λc. b (a a c))'
 goal_s='(λx y. x)'
 goal_t='(λx y. y)'
 r1 = brute_force(0, s, t, goal_s, goal_t)
 print(f"{r1=}")
+
+exit()
 
 #for i in range(0, 50):
 #    s = "(λa b. a (a b))"

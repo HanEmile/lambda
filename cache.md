@@ -1,4 +1,5 @@
 # cache
+
 ```
 (('(λa. a a)', '(λa b. a a)'), ('(λx y. x)', '(λx y. y)')): ['(λp. p (λe f. f) (λc d. c))', '(λb a c c. (λc d. c))', '(λp. p (λe f. f) (λc d. c))', '(λa b. b)', '(λa b. b)']
 (('(λa. a a)', '(λa b. a b)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. b)', '(λp. p (λe f. f) (λc d. c))', '(λa b. b)']
@@ -68,4 +69,11 @@
 (('(λa b c. a (a b))', '(λa b c. a (a a))'), ('(λx y. x)', '(λx y. y)')): ['(λa b. b a b)', '(λa b. b b a)', '(λb a c c. (λc d. c))', '(λa b. a)', '(λa b. a)', '(λa b. a)', '(λa b. b)']
 (('(λa b. a (b b))', '(λa b. a λc. b c)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. a a a)', '(λa b. a)', '(λa b. a b a)', '(λa b. b)', '(λc d. c)']
 (('(λa. a a a)', '(λa b c. a c)'), ('(λx y. x)', '(λx y. y)')): ['(λc d. c)', '(λc d. c)', '(λb. (λe f. f))', '(λa b. a)', '(λa b. a)']
+(('(λa b. a (a b a))', '(λa b c. a (a a))'), ('(λx y. x)', '(λx y. y)')): ['(λa b. b)', '(λb a c c. (λc d. c))', '(λa. (λc d. c))', '(λa b. b)']
+(('(λa b. a (b b) a)', '(λa b c. a (b c c) a)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. a)', '(λc d. c)', '(λb a c c. (λc d. c))', '(λa b. b)', '(λa b. b)', '(λa b. b b a)', '(λa b. b)', '(λa b. b)', '(λa b. a)']
+(('(λa b. a a (a a))', '(λa b c. a a (c c))'), ('(λx y. x)', '(λx y. y)')): ['(λc d. c)', '(λa b c. a c a a)', '(λa b c. b c a b)', '(λa b. a)', '(λa. (λc d. c))', '(λa b. b)', '(λb a c c. (λc d. c))']
+(('(λa b. a (a a a))', '(λa b c. a (a a c))'), ('(λx y. x)', '(λx y. y)')): ['(λa b. b)', '(λa. a)', '(λa. (λc d. c))', '(λa b. b)']
+(('(λa b c. c c)', '(λa b c. b a a)'), ('(λx y. x)', '(λx y. y)')): ['(λb. (λe f. f))', '(λa b c. c a a a)', '(λa b. a)', '(λa b. b)']
+(('(λa b. a (a a b))', '(λa b c. a (a a a))'), ('(λx y. x)', '(λx y. y)')): ['(λa b. a)', '(λa b c. b c c c)', '(λa b. a)', '(λa b. b)', '(λb. (λe f. f))', '(λb. (λe f. f))', '(λa b. a)']
+(('(λa b. a a a)', '(λa b. a a b)'), ('(λx y. x)', '(λx y. y)')): ['(λa. a)', '(λp. p (λe f. f) (λc d. c))', '(λa b. a)']
 ```

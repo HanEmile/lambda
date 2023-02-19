@@ -653,7 +653,13 @@ while True:
         level += 1
     except:
         print("SOMETHING WENT HORRIBLY WRONG!")
+
         print(f"CANNOT SOLVE {s=} {t=}")
+        cannot_solve = open("cannot_solve.md", "a")
+        cannot_solve.write(f"# cannot solve\n\n```\n")
+        cannot_solve.write(f"{s} | {t}\n\n")
+        cannot_solve.write(f"```")
+
         print(f"level {level}, cache hits: {cache_hits}")
         try:
             del cache[last_added_to_cache]
@@ -666,7 +672,7 @@ while True:
             pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         cache_human_readable = open("cache.md", "w")
-        cache_human_readable.write(f"# cache\n```\n")
+        cache_human_readable.write(f"# cache\n\n```\n")
         for k in cache:
             cache_human_readable.write(f"{k}: {cache[k]}\n")
             print(k)

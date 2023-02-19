@@ -29,6 +29,18 @@ format:
 ((s, t), (goal_s, goal_t)) ['(v1)', '(v2)', '(v3)', ...]
 ```
 
+## Cannot Solve
+
+Caching implemented, view the current cache here: [cache.md](./cache.md)
+
+Input expressions that cannot be solved are logged here: [cannot_solve.md](./cannot_solve.md)
+
+format:
+
+```
+(s) | (t)
+```
+
 
 ## Challenge Description
 

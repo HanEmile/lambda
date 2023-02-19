@@ -653,6 +653,7 @@ while True:
         level += 1
     except:
         print("SOMETHING WENT HORRIBLY WRONG!")
+        print(f"CANNOT SOLVE {s=} {t=}")
         print(f"level {level}, cache hits: {cache_hits}")
         try:
             del cache[last_added_to_cache]

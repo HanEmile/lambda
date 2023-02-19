@@ -4,14 +4,17 @@ challenge dev setup
 
 Get a shell:
 
-```
-$ nix develop
+```bash
+; nix develop
+
+# enable flakes if you haven't:
+; nix --experimental-features 'nix-command flakes' develop
 ```
 
 Exec solve script:
 
-```
-$ python3 solve.py
+```bash
+; python3 solve.py
 ```
 
 ---

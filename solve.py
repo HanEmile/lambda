@@ -656,9 +656,8 @@ while True:
 
         print(f"CANNOT SOLVE {s=} {t=}")
         cannot_solve = open("cannot_solve.md", "a")
-        cannot_solve.write(f"# cannot solve\n\n```\n")
-        cannot_solve.write(f"{s} | {t}\n\n")
-        cannot_solve.write(f"```")
+        cannot_solve.write(f"# cannot solve\n\n")
+        cannot_solve.write(f"- `{s} | {t}`\n")
 
         print(f"level {level}, cache hits: {cache_hits}")
         try:

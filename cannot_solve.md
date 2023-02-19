@@ -80,3 +80,25 @@
 - `(λa b. a a λc. a a b) | (λa b. a a λc. a a)`
 - `(λa b. a a λc. b c) | (λa b. a a λc. c a)`
 - `(λa b. a (b a b)) | (λa b. a λc. c b a)`
+- `(λa b. a a λc. a (a a)) | (λa b. a a λc. a (b a c))`
+- `(λa b. a (b b a) a) | (λa b. a (λc. b c) a)`
+- `(λa b. a (a b)) | (λa b. a λc. c a a)`
+- `(λa b. a (b a)) | (λa b. a λc. b a b)`
+- `(λa b. a λc. b (c a)) | (λa b. a λc. b (b c a))`
+- `(λa b. a λc. a (a a b)) | (λa b. a λc. a (c c a))`
+- `(λa b. a λc. b (a c)) | (λa b. a λc. b (a b))`
+- `(λa b. a λc. a a (a a)) | (λa b. a λc. a a (a c))`
+- `(λa b. a λc. c a b) | (λa b. a (b a))`
+- `(λa b. a λc. a c c) | (λa b. a (a b))`
+- `(λa b. a a λc. a b) | (λa b. a a (b a a))`
+- `(λa b. a a (b a)) | (λa b c. a a (a a))`
+- `(λa b. a λc. a b a) | (λa b. a λc. a b c)`
+- `(λa b. a a λc. a c) | (λa b. a a (a a))`
+- `(λa b. a (a a) a) | (λa b c. a (a a a) a)`
+- `(λa b. a λc. a (c a) b) | (λa b. a λc. a (a a) b)`
+- `(λa b. a λc. a (b b)) | (λa b. a λc. a (a a b))`
+- `(λa b. a a λc. a a) | (λa b. a a (a b b))`
+- `(λa b. a (b b)) | (λa b. a λc. b a)`
+- `(λa b. a (λc. b (b b c) b) a) | (λa b. a (λc. b (b c a) b) a)`
+- `(λa b c. a (b b c) a) | (λa b. a (a b a) a)`
+- `(λa b. a λc. a (b b a)) | (λa b. a λc. a (b b))`

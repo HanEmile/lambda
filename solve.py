@@ -655,8 +655,7 @@ while True:
         print("SOMETHING WENT HORRIBLY WRONG!")
 
         print(f"CANNOT SOLVE {s=} {t=}")
-        cannot_solve = open("cannot_solve.md", "a")
-        cannot_solve.write(f"# cannot solve\n\n")
+        cannot_solve = open("./cannot_solve.md", "a")
         cannot_solve.write(f"- `{s} | {t}`\n")
 
         print(f"level {level}, cache hits: {cache_hits}")

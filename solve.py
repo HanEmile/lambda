@@ -664,7 +664,8 @@ while True:
             pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         for k in cache:
-            print(k, cache[k])
+            #print(k, cache[k])
+            print(k)
 
 
         break

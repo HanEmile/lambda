@@ -14,7 +14,7 @@ Get a shell:
 Exec solve script:
 
 ```bash
-; python3 solve.py
+[HackTM CTF lambda]; python3 solve.py 
 ```
 
 ---

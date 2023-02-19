@@ -23,6 +23,13 @@ Exec solve script:
 
 Caching implemented, view the current cache here: [cache.md](./cache.md)
 
+format:
+
+```
+((s, t), (goal_s, goal_t)) ['(v1)', '(v2)', '(v3)', ...]
+```
+
+
 ## Challenge Description
 
 Let's have some fun with Lambda Calculus!

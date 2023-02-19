@@ -198,8 +198,9 @@ def beta_reduce(depth, expression):
     # move lambdas from body to params
     if "λ" in body:
         idx = body.index("λ")
-        params.append(body[idx+1])
-        del body[idx:idx+3] # the lambda, the arg and the dot
+        if body[idx-1] != "(":
+            params.append(body[idx+1])
+            del body[idx:idx+3] # the lambda, the arg and the dot
     # +++++++++++++ THIS COULD BE BROKEN ++++++++
 
 
@@ -664,8 +665,13 @@ while True:
             pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         for k in cache:
-            #print(k, cache[k])
-            print(k)
+
+            cache_human_readable = open("cache.md", "w")
+            cache_human_readable.write(f"# cache\n```\n")
+            for k in cache:
+                cache_human_readable.write(f"{k}: {cache[k]}\n")
+                print(k)
+            cache_human_readable.write(f"```")
 
 
         break

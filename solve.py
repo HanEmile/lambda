@@ -455,6 +455,10 @@ def brute_force(level, s, t, goal_s, goal_t):
 
         counter += CHUNK_SIZE
 
+        # set a limit for the amount of tries we're doing
+        if counter == 100_000:
+            return []
+
     return rands
 
 def brute_force_single(level, s, goal_s):
@@ -635,6 +639,9 @@ while True:
         # solve manually
         else:
             res = brute_force(level, s, t, goal_s, goal_t)
+            if res == []:
+                print("could not find solution in given amount of tries, skipping")
+                continue
             print("SOLVE MANUALLY")
             print(res)
 
@@ -657,6 +664,16 @@ while True:
 
         #p.interactive()
         level += 1
+
+    # catch CTRL-C for skipping the current testcase, there's a 3 second window
+    # for pressing CTRL-C again for completely stopping the script
+    except KeyboardInterrupt:
+        try:
+            time.sleep(3)
+            continue
+        except KeyboardInterrupt:
+            exit()
+
     except:
         print("SOMETHING WENT HORRIBLY WRONG!")
 

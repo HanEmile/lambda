@@ -664,14 +664,12 @@ while True:
         with open('cache.pickle', 'wb') as handle:
             pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+        cache_human_readable = open("cache.md", "w")
+        cache_human_readable.write(f"# cache\n```\n")
         for k in cache:
-
-            cache_human_readable = open("cache.md", "w")
-            cache_human_readable.write(f"# cache\n```\n")
-            for k in cache:
-                cache_human_readable.write(f"{k}: {cache[k]}\n")
-                print(k)
-            cache_human_readable.write(f"```")
+            cache_human_readable.write(f"{k}: {cache[k]}\n")
+            print(k)
+        cache_human_readable.write(f"```")
 
 
         break

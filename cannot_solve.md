@@ -46,3 +46,8 @@
 - `(λa b. a λc. c c b) | (λa b. a (b b))`
 - `(λa b. a λc. c c c) | (λa b. a (b a a))`
 - `(λa b. b b) | (λa b. b a)`
+- `(λa b. a λc. b a b) | (λa b. a (b b))`
+- `(λa b. a a λc. a (c b a) b) | (λa b. a a λc. a (c b c) b)`
+- `(λa b. a λc. b (c b) a) | (λa b. a λc. b (c c) a)`
+- `(λa b. a λc. b (a b)) | (λa b. a λc. b (a a))`
+- `(λa b. a λc. a (a b)) | (λa b. a λc. a (a c b))`

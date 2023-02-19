@@ -134,4 +134,10 @@
 (('(λa b c. b (b c) b)', '(λa b c. b (a a) b)'), ('(λx y. x)', '(λx y. y)')): ['(λe f. f)', '(λa b. a)', '(λc d. c)', '(λa b. b)']
 (('(λa b. a (λc. a (b a a) b) a)', '(λa b. a (λc. a (b c c) b) a)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. a)', '(λa b. a b a)', '(λe f. f)']
 (('(λa b c. c a)', '(λa. a a a)'), ('(λx y. x)', '(λx y. y)')): ['(λc d. c)', '(λa. (λc d. c))', '(λa b. a b a)', '(λa b. a a b)', '(λe f. f)', '(λa b. a)']
+(('(λa b c. a a (a a))', '(λa b. a a (a a a))'), ('(λx y. x)', '(λx y. y)')): ['(λa. (λc d. c))', '(λa b. a a b)', '(λa b. a a b)', '(λa b. a a b)', '(λa b. a)', '(λb. (λe f. f))', '(λa b. a)', '(λa b c. b c a b)']
+(('(λa. a a a)', '(λa b c. a c a)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. b)', '(λa b c. b a c b)', '(λa b. a)']
+(('(λa b. b b b)', '(λa b c. a a c)'), ('(λx y. x)', '(λx y. y)')): ['(λa. (λc d. c))', '(λa. (λc d. c))', '(λe f. f)', '(λb. (λe f. f))']
+(('(λa b. a (λc. b a (b a)) a)', '(λa b. a (λc. b a (b b c)) a)'), ('(λx y. x)', '(λx y. y)')): ['(λa b. a)', '(λa. a)', '(λe f. f)', '(λb. (λe f. f))']
+(('(λa b. b b b)', '(λa b. b b)'), ('(λx y. x)', '(λx y. y)')): ['(λa b c. a a a a)', '(λa b c. a b c c)', '(λa b. a)', '(λb. (λe f. f))']
+(('(λa b. a (λc. a (b b b)) a)', '(λa b. a (λc. a (a b)) a)'), ('(λx y. x)', '(λx y. y)')): ['(λa. a)', '(λb. (λe f. f))', '(λa b. a)']
 ```

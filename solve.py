@@ -5,6 +5,10 @@ import random
 import functools
 import time
 
+import logging
+
+random.seed(time.time())
+
 alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
             'y', 'z']
@@ -236,16 +240,26 @@ def recurse(expression):
 
     try:
         while expression[1] == "λ" and len(get_expr(expression))>1:
-            expression = beta_reduce(expression).strip()
-            #print(f"[d {depth}] {expression=}")
+            expression = beta_reduce(expression).strip().replace("  ", "")
+            #print(f"[1d {depth}] {expression=}")
+            if expression[:2] == '((':
+                #print(f"[2d {depth}] {expression[:2]=}")
+                # remove extra bracket (left associativity)
+                para = get_expr(expression, get_func=True)[0]
+                #print(f"{para=}")
+                expression = expression[1:len(para)-1] + expression[len(para):]
+                #print(f"[3d {depth}] {expression=}")
             depth += 1
 
-            if depth >= 50:
+            if depth >= 10:
                 break
     except:
+    #except Exception as e:
+    #    logging.exception(e)
+    #    print(expression)
         pass
 
-    return expression
+    return expression.replace("  ", "")
 
 ################################################################################
 
@@ -273,13 +287,39 @@ def gen_funcs(param_count=2, body_count=3):
 
     return ret
 
+funcs1 = gen_funcs(param_count=2, body_count=1)
 funcs2 = gen_funcs(param_count=2, body_count=3)
 funcs3 = gen_funcs(param_count=3, body_count=4)
 funcs4 = gen_funcs(param_count=4, body_count=4)
 
 manual = [
-        '(λb a c c. {primitives["TRUE"]})',
+        f'(λb a c c. {primitives["TRUE"]})',
+            #'(λa b f. f a b)',
+            #'(λa f. f a)',
+            #'(λa. a)',
+            #'(λa b. a)',
+            #'(λa. a)',
+            #'(λa b. a)',
+            #'(λa. a)',
+            #'(λg h. (λc d. c))',
+            #'(λg h. (λe f. f))'
         ]
+
+#'(λv0 v1 f. f v0 v1)'
+#'(λv0 f. f v0)'
+#'(holder)'
+#'(λv0 v1. v0)'
+#'(holder)'
+#'(λv0 v1. v0)'
+#'(holder)'
+#'(λi0 i1. (true))'
+#'(λi0 i1. (false))']
+
+#(lambda a b. a (a a)) (λv0 v1 f. f v0 v1) (λv0 f. f v0) (holder) (λv0 v1. v0) (holder) (λv0 v1. v0) (holder) (λi0 i1. (λc d. c)) (λi0 i1. (λe f. f))
+
+#(lambda a b. a (a b)) (λv0 v1 f. f v0 v1) (λv0 f. f v0) (holder) (λv0 v1. v0) (holder) (λv0 v1. v0) (holder) (λi0 i1. (λc d. c)) (λi0 i1. (λe f. f))
+
+#for s = λa b. a (a a), you can give it a = (λz x y. x); b = (λz. z)
 
 primi = primitives
 
@@ -289,95 +329,213 @@ primi = primitives
 
 #print(60*"-")
 
-#possible_vals = [[a for a in primi.values()], funcs2, funcs3, funcs4]
+possible_vals = [[a for a in primi.values()], funcs1, funcs2, funcs3, manual]
+#possible_vals = [[a for a in primi.values()], manual]
 #possible_vals = [[a for a in primi.values()], funcs2, funcs3]
-possible_vals = [[a for a in primi.values()], funcs3, manual]
+#possible_vals = [[a for a in primi.values()], funcs3, manual]
 #possible_vals = [[a for a in primi.values()], funcs2]
-
 
 
 ############################################################
 # Brute Forcer
 ############################################################
 
-#s = "(λa b. b a)"
-#t = "(λa b. b b)"
-#print(f"[ ] {s=}")
-#print(f"[ ] {t=}")
 
-#goal_s = "(λa b. a)"
-#goal_t = "(λa b. b)"
-#print(f"[ ] {goal_s=}")
-#print(f"[ ] {goal_t=}")
 
 total_len = len([b for a in possible_vals for b in a])
 
 def brute_force(level, s, t, goal_s, goal_t):
+    start = time.time()
+    time.sleep(0.01)
+
+    CHUNK_SIZE = 100
+    running = True
 
     counter = 0
-    while True:
-        print(f"\r{level}, {counter:10} / {total_len:10} | {s} | {t}", end="")
+    while running:
+        now = time.time()
+        elapsed = now - start
+        fcps = int(counter / elapsed)
+        print(f"\r| {level:4} | {fcps:5} | {counter:10} / {total_len:4} | {s} | {t}", end="")
 
-        rands = []
+        for i in range(0, CHUNK_SIZE):
 
-        for i in range(0, random.choice([1, 2, 3])):
-            rands.append(random.choice(random.choice(possible_vals)))
+            rands = []
 
-        #print()
-        #print(f"[ ] {s=}")
-        #print(f"[ ] {t=}")
-        #print(f"[ ] {rand1=}")
-        #print(f"[ ] {rand2=}")
+            for i in range(0, random.choice(range(10))):
+                rands.append(random.choice(random.choice(possible_vals)))
 
-        term_s = " ".join([s, *rands])
-        term_t = " ".join([t, *rands])
-        #print(f"[ ] {term_s=}")
-        #print(f"[ ] {term_t=}")
+            term_s = " ".join([s, *rands])
+            term_t = " ".join([t, *rands])
 
-        r_s = recurse(term_s)
-        r_t = recurse(term_t)
-        #print(f"[ ] {r_s=}")
-        #print(f"[ ] {r_t=}")
+            r_s = recurse(term_s)
+            r_t = recurse(term_t)
 
-        #print(f"[ ] {match(r_s, goal_s)=}")
-        #print(f"[ ] {match(r_t, goal_t)=}")
+            if match(r_s, goal_s) and match(r_t, goal_t):
+            #if match(r_s, goal_s):
+                print(40*"=")
+                print(f"[ ] {s=} {t=}")
+                print(f"[ ] {rands=}")
+                print(f"[ ] {goal_s=}")
+                print(f"[ ] {r_s=}")
+                print(f"[ ] {r_t=}")
+                print(40*"=")
+                running = False
+                break
 
-        if match(r_s, goal_s) and match(r_t, goal_t):
-            print(40*"=")
-            print(f"[ ] {s=} {t=}")
-            print(f"[ ] {rands=}")
-            print(f"[ ] {goal_s=}")
-            print(f"[ ] {r_s=}")
-            print(f"[ ] {r_t=}")
-            print(40*"=")
-            break
-
-        counter += 1
+        counter += CHUNK_SIZE
 
     return rands
+
+def brute_force_single(level, s, goal_s):
+    start = time.time()
+    time.sleep(1)
+
+    CHUNK_SIZE = 100
+    running = True
+
+    counter = 0
+    while running:
+        now = time.time()
+        elapsed = now - start
+        fcps = counter / elapsed
+        print(f"\r| {level:4} | {fcps:5.2} | {counter:10} / {total_len:4} | {s} ", end="")
+
+        for i in range(0, CHUNK_SIZE):
+
+            rands = []
+
+            for j in range(0, random.choice([1, 2, 3, 4])):
+                rands.append(random.choice(random.choice(possible_vals)))
+
+            term_s = " ".join([s, *rands])
+            r_s = recurse(term_s)
+            if match(r_s, goal_s):
+                print(f"\r| {level:4} | {fcps:5.2} | {counter+i:10} / {total_len:4} | {s} ", end="")
+                print(40*"=")
+                print(f"[ ] {s=}")
+                print(f"[ ] {rands=}")
+                print(f"[ ] {goal_s=}")
+                print(f"[ ] {r_s=}")
+                print(40*"=")
+                running = False
+                break
+
+        counter += CHUNK_SIZE
+
+    return rands
+
+############################################################
+
+# r1=['(λa. (λc d. c))', '(λa b c. a c c a)']
+
+"""
+# s solutions
+[ ] rands=['(λa. (λc d. c))', '(λa b c d. a c d b)']
+[ ] rands=['(λe f. f)', '(λa b c. c c a c)', '(λc d. c)']
+[ ] rands=['(λa b. b b b)', '(λa b. a a a)', '(λc d. c)']
+[ ] rands=['(λa b. b b a)', '(λa b c d. d a d d)', '(λc d. c)']
+
+'(λa b c d. a c d b)'
+'(λa b c d. d a d d)'
+'(λa b c. c c a c)'
+'(λa b. a a a)'
+'(λa b. b b a)'
+'(λa b. b b b)'
+'(λa. (λc d. c))'
+'(λc d. c)'
+'(λe f. f)'
+"""
+
+"""
+[ ] rands=['(λb. (λe f. f))', '(λa b c d. c a a b)']
+[ ] rands=['(λa b. b a b)', '(λa b. a a b)', '(λe f. f)']
+[ ] rands=['(λa b. b b b)', '(λa b. b a a)', '(λe f. f)']
+[ ] rands=['(λe f. f)', '(λa b c. c b b a)', '(λe f. f)']
+
+'(λa b c d. c a a b)'
+'(λa b c. c b b a)'
+'(λa b. a a b)'
+'(λa b. b a a)'
+'(λa b. b a b)'
+'(λa b. b b b)'
+'(λb. (λe f. f))'
+'(λe f. f)'
+"""
+
+### ########################################
+### 
+### #(lambda a b. a (a a)) (lambda z x y. x) (lambda x. x)
+### #(lambda a b. a (a b)) (lambda z x y. x) (lambda x. x)
+### #['(λv0 v1 f. f v0 v1)', '(λv0 f. f v0)', '(holder)', '(λv0 v1. v0)', '(holder)', '(λv0 v1. v0)', '(holder)', '(λi0 i1. (true))', '(λi0 i1. (false))']
+### 
+### func = "(λa b. a (a b))"
+### args = ' '.join(['(λa b f. f a b)', '(λa f. f a)', '(λa. a)', '(λa b. a)',
+###                  '(λa. a)', '(λa b. a)', '(λa. a)', '(λg h. (λc d. c))',
+###                  '(λg h. (λe f. f))'])#, '(λx. x)'])
+### 
+### exp = f"{func} {args}"
+### print(f"{exp=}")
+### 
+### r1 = recurse(exp)
+### print(f"{r1=}")
+### 
+### ########################################
+
+s='(λa b. a λc. b (a c))'
+t='(λa b. a λc. b (a a c))'
+goal_s='(λx y. x)'
+goal_t='(λx y. y)'
+r1 = brute_force(0, s, t, goal_s, goal_t)
+print(f"{r1=}")
+
+#for i in range(0, 50):
+#    s = "(λa b. a (a b))"
+#    t = "(λa b. a (a a))"
+#    goal_s='(λx y. x)'
+#    goal_t='(λx y. y)'
+#    r1 = brute_force(0, s, t, goal_s, goal_t)
+#    #r1 = brute_force_single(0, s, goal_s)
+#
+#    for option in possible_vals:
+#        if r1[0] in option:
+#            option = option.remove(r1[0])
+#    print(f"{r1=}")
+#    print()
+
+
+# λ > (lambda a b. a (a a)) (lambda z x y. x) (lambda x. x)
+# ω > wrap abstraction and application with brackets:
+# 　　　(lambda a b. a (a a)) (lambda z x y. x) (lambda x. x) -> ((lambda a b. a (a a)) (lambda z x y. x) (lambda x. x))
+# α > (((λa.(λb.(a(a a))))(λz.(λx.(λy.x))))(λx0.x0))
+# β > ((λb.((λz.(λx.(λy.x)))((λz.(λx.(λy.x)))(λz.(λx.(λy.x))))))(λx0.x0))
+# α > ((λb.((λz.(λx.(λy.x)))((λx0.(λx1.(λx2.x1)))(λx3.(λx4.(λx5.x4))))))(λx6.x6))
+# β > ((λz.(λx.(λy.x)))((λx0.(λx1.(λx2.x1)))(λx3.(λx4.(λx5.x4)))))
+# β > (λx.(λy.x))
+
 
 ############################################################
 # Server Interaction
 ############################################################
 
 p = remote("34.141.16.87", 60000)
-p.readuntil("s = ")
+p.readuntil(bytes("s = ", "utf-8"))
 
 level = 0
 
 while True:
-    p.readuntil("s = ")
+    p.readuntil(b"s = ")
     s = "("+ p.readline().decode().strip() + ")"
     print(f"{s=}")
 
-    p.readuntil("t = ")
+    p.readuntil(b"t = ")
     t = "(" + p.readline().decode().strip() + ")"
     print(f"{t=}")
 
-    p.readuntil("beta-reduces to ")
+    p.readuntil(b"beta-reduces to ")
     goal_s = p.readline().decode().strip()
     print(f"{goal_s=}")
-    p.readuntil("beta-reduces to ")
+    p.readuntil(b"beta-reduces to ")
     goal_t = p.readline().decode().strip()
     print(f"{goal_t=}")
 

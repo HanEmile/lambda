@@ -17,6 +17,32 @@ Exec solve script:
 [HackTM CTF lambda]; python3 solve.py 
 ```
 
+## Example
+
+```
+------------------ EXAMPLE ------------------
+s = λb ε. ε b
+t = λb ε. b ε
+Please provide inputs [v1, v2, v3, ..., vn] such that:
+	((s) (v1) (v2) (v3) ... (vn)) beta-reduces to (λx y. x)
+	((t) (v1) (v2) (v3) ... (vn)) beta-reduces to (λx y. y)
+
+How many terms do you want to input? 2
+Please input term 1: (λa . (λx y . y))
+Please input term 2: (λa . (λx y . x))
+Correct!
+---------------------------------------------
+
+------------------ challenge 1/1000 ------------------
+s = λa. a a
+t = λa b. a b
+Please provide inputs [v1, v2, v3, ..., vn] such that:
+	((s) (v1) (v2) (v3) ... (vn)) beta-reduces to (λx y. x)
+	((t) (v1) (v2) (v3) ... (vn)) beta-reduces to (λx y. y)
+
+How many terms do you want to input?
+```
+
 ---
 
 ## Cache

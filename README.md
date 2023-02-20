@@ -17,6 +17,11 @@ Exec solve script:
 [HackTM CTF lambda]; python3 solve.py 
 ```
 
+## Known problems
+
+function generation can be made better, I'm only doing vaiable param and body
+count, but no function in body or so.
+
 ## Example
 
 ```
